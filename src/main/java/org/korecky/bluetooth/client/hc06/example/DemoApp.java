@@ -1,7 +1,9 @@
 package org.korecky.bluetooth.client.hc06.example;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.Scanner;
+import java.util.logging.Level;
 import org.korecky.bluetooth.client.hc06.BluetoothScanThread;
 import org.korecky.bluetooth.client.hc06.RFCommClientThread;
 import org.korecky.bluetooth.client.hc06.event.ScanFinishedEvent;
@@ -19,7 +21,7 @@ import org.korecky.bluetooth.client.hc06.listener.RFCommClientEventListener;
  * @author vkorecky
  */
 public class DemoApp {
-
+    
     private static final Logger logger = LoggerFactory.getLogger(DemoApp.class);
 
     /**
@@ -29,13 +31,13 @@ public class DemoApp {
      */
     public static void main(String[] args) throws Exception {
         // Prepare search thread
-        Thread scanThread = new Thread(new BluetoothScanThread(new BluetoothScanEventListener() {
+        BluetoothScanThread scanThread = new BluetoothScanThread(new BluetoothScanEventListener() {
             @Override
             public void error(ErrorEvent evt) {
                 // When error happenes
                 evt.getError().printStackTrace();
             }
-
+            
             @Override
             public void scanFinished(ScanFinishedEvent evt) {
                 System.out.println("");
@@ -52,32 +54,48 @@ public class DemoApp {
                 System.out.print("Device number for communication:");
                 Scanner in = new Scanner(System.in);
                 int selected = in.nextInt();
-
+                
                 if ((selected > 0) && (selected <= evt.getFoundDevices().size())) {
-                    // Listen bluetooth device
-                    RFCommBluetoothDevice selectedDevice = evt.getFoundDevices().get(selected - 1);
-                    Thread commThread = new Thread(new RFCommClientThread(selectedDevice.getUrl(), new RFCommClientEventListener() {
-                        @Override
-                        public void error(ErrorEvent evt) {
-                            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-                        }
+                    try {
+                        // Listen bluetooth device
+                        RFCommBluetoothDevice selectedDevice = evt.getFoundDevices().get(selected - 1);
+                        RFCommClientThread commThread = new RFCommClientThread(selectedDevice.getUrl(), new RFCommClientEventListener() {
+                            @Override
+                            public void error(ErrorEvent evt) {
+                                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                            }
+                            
+                            @Override
+                            public void messageReceived(MessageReceivedEvent evt) {
+                                System.out.println(String.format("[%s] %s", new Date(), evt.getMessage()));
+                            }
+                        });
+                        commThread.start();
 
-                        @Override
-                        public void messageReceived(MessageReceivedEvent evt) {
-                            System.out.println(String.format("[%s] %s", new Date(), evt.getMessage()));
+                        // Send message to Arduino
+                        System.out.print("What's your name? :");
+                        in = new Scanner(System.in);
+                        String name = in.nextLine();
+                        commThread.send(name);
+                        try {
+                            Thread.sleep(2000);
+                        } catch (InterruptedException ex) {
+                            logger.error("Cannot sleep main thread.");
                         }
-                    }));
-                    commThread.start();
+                        System.exit(0);
+                    } catch (IOException ex) {
+                        logger.error("Cannot connect to device.", ex);
+                    }
                 } else {
                     System.out.print("Invalid selection.");
                 }
             }
-
+            
             @Override
             public void progressUpdated(ProgressUpdatedEvent evt) {
                 System.out.println(String.format("[%d/%d] %s", evt.getWorkDone(), evt.getWorkMax(), evt.getMessage()));
             }
-        }));
+        });
 
         // Start search of bluetooth device
         scanThread.start();
