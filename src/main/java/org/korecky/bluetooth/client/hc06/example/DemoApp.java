@@ -3,7 +3,6 @@ package org.korecky.bluetooth.client.hc06.example;
 import java.io.IOException;
 import java.util.Date;
 import java.util.Scanner;
-import java.util.logging.Level;
 import org.korecky.bluetooth.client.hc06.BluetoothScanThread;
 import org.korecky.bluetooth.client.hc06.RFCommClientThread;
 import org.korecky.bluetooth.client.hc06.event.ScanFinishedEvent;
@@ -41,7 +40,7 @@ public class DemoApp {
             @Override
             public void scanFinished(ScanFinishedEvent evt) {
                 System.out.println("");
-                System.out.println("Found RFComm decices (possible HC06)");
+                System.out.println("Found RFComm decices");
                 int i = 1;
                 for (RFCommBluetoothDevice device : evt.getFoundDevices()) {
                     System.out.println(String.format("%d:", i));
@@ -59,7 +58,7 @@ public class DemoApp {
                     try {
                         // Listen bluetooth device
                         RFCommBluetoothDevice selectedDevice = evt.getFoundDevices().get(selected - 1);
-                        RFCommClientThread commThread = new RFCommClientThread(selectedDevice.getUrl(), new RFCommClientEventListener() {
+                        RFCommClientThread commThread = new RFCommClientThread(selectedDevice.getUrl(), '\n', new RFCommClientEventListener() {
                             @Override
                             public void error(ErrorEvent evt) {
                                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
