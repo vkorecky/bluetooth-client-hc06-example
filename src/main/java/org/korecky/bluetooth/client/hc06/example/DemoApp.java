@@ -20,7 +20,7 @@ import org.korecky.bluetooth.client.hc06.listener.RFCommClientEventListener;
  * @author vkorecky
  */
 public class DemoApp {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(DemoApp.class);
 
     /**
@@ -36,7 +36,7 @@ public class DemoApp {
                 // When error happenes
                 evt.getError().printStackTrace();
             }
-            
+
             @Override
             public void scanFinished(ScanFinishedEvent evt) {
                 System.out.println("");
@@ -53,7 +53,7 @@ public class DemoApp {
                 System.out.print("Device number for communication:");
                 Scanner in = new Scanner(System.in);
                 int selected = in.nextInt();
-                
+
                 if ((selected > 0) && (selected <= evt.getFoundDevices().size())) {
                     try {
                         // Listen bluetooth device
@@ -63,7 +63,7 @@ public class DemoApp {
                             public void error(ErrorEvent evt) {
                                 throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
                             }
-                            
+
                             @Override
                             public void messageReceived(MessageReceivedEvent evt) {
                                 System.out.println(String.format("[%s] %s", new Date(), evt.getMessage()));
@@ -89,7 +89,7 @@ public class DemoApp {
                     System.out.print("Invalid selection.");
                 }
             }
-            
+
             @Override
             public void progressUpdated(ProgressUpdatedEvent evt) {
                 System.out.println(String.format("[%d/%d] %s", evt.getWorkDone(), evt.getWorkMax(), evt.getMessage()));
@@ -98,5 +98,6 @@ public class DemoApp {
 
         // Start search of bluetooth device
         scanThread.start();
+        scanThread.scanDevices();
     }
 }
